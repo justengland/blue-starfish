@@ -1,0 +1,6 @@
+wp-content/cache/
+wp-content/uploads/
+scrape/
+ocean-breeze.zip
+.cursor/
+.DS_Store

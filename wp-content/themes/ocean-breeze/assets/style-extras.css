@@ -1,0 +1,70 @@
+/* Ocean Breeze — front-end refinements beyond theme.json */
+
+/* Outline button variant (navy outline on light, paper outline on navy) */
+.wp-block-button.is-style-outline .wp-block-button__link {
+	background-color: transparent !important;
+	color: var(--wp--preset--color--deep-twilight) !important;
+	border: 1px solid currentColor;
+}
+.has-deep-twilight-background-color .wp-block-button.is-style-outline .wp-block-button__link {
+	color: var(--wp--preset--color--paper) !important;
+}
+.wp-block-button.is-style-outline .wp-block-button__link:hover {
+	background-color: var(--wp--preset--color--turquoise-surf) !important;
+	color: var(--wp--preset--color--deep-twilight) !important;
+	border-color: var(--wp--preset--color--turquoise-surf);
+}
+
+/* Links inside navy sections read in light cyan, not dark teal */
+.has-deep-twilight-background-color a:not(.wp-block-button__link) {
+	color: var(--wp--preset--color--frosted-blue);
+}
+.has-deep-twilight-background-color a:not(.wp-block-button__link):hover {
+	color: var(--wp--preset--color--turquoise-surf);
+}
+
+/* Selection */
+::selection {
+	background-color: var(--wp--preset--color--turquoise-surf);
+	color: var(--wp--preset--color--deep-twilight);
+}
+
+/* Accessible focus ring */
+a:focus-visible,
+button:focus-visible,
+.wp-block-button__link:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+	outline: 2px solid var(--wp--preset--color--turquoise-surf);
+	outline-offset: 3px;
+}
+
+/* Optical heading tweak: italic display words sit a touch heavier */
+h1 em, h2 em { font-style: italic; font-weight: 480; }
+
+/* Post cards: subtle lift on hover */
+.wp-block-post-template .wp-block-group { transition: transform 0.25s ease; }
+.wp-block-post-template .wp-block-group:hover { transform: translateY(-3px); }
+
+/* Featured image: square the corners to match the editorial tone */
+.wp-block-post-featured-image img { border-radius: 0; }
+
+/* Search field, squared to match buttons */
+.wp-block-search__input {
+	border: 1px solid var(--wp--preset--color--deep-twilight);
+	border-radius: 0;
+	padding: 0.85rem 1.1rem;
+}
+.wp-block-search__button { border-radius: 0; }
+
+/* Page-load reveal for the hero headline */
+@media (prefers-reduced-motion: no-preference) {
+	main > .wp-block-group:first-child h1 {
+		animation: ob-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	}
+	@keyframes ob-rise {
+		from { opacity: 0; transform: translateY(14px); }
+		to   { opacity: 1; transform: translateY(0); }
+	}
+}

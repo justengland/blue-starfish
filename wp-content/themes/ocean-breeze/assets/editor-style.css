@@ -1,0 +1,5 @@
+/* Ocean Breeze — editor refinements (mirrors front end) */
+.wp-block-button.is-style-outline .wp-block-button__link{
+	background-color:transparent!important;color:#03045E!important;border:1px solid currentColor;
+}
+.editor-styles-wrapper h1 em,.editor-styles-wrapper h2 em{font-style:italic;font-weight:480;}

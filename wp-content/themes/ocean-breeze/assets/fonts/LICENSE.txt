@@ -1,0 +1,7 @@
+Fraunces — Copyright 2019 The Fraunces Project Authors (https://github.com/undercasetype/Fraunces)
+Archivo  — Copyright 2019 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo)
+
+Both fonts are licensed under the SIL Open Font License, Version 1.1.
+Full license: https://scripts.sil.org/OFL
+
+These fonts have been subset/instanced (weight axis retained) for web use.

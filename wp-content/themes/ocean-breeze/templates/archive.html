@@ -1,0 +1,39 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+
+	<!-- wp:group {"layout":{"type":"constrained"}} -->
+	<div class="wp-block-group">
+		<!-- wp:paragraph {"style":{"typography":{"fontSize":"0.85rem","textTransform":"uppercase","letterSpacing":"0.1em","fontWeight":"600"}},"textColor":"bright-teal-blue"} -->
+		<p class="has-bright-teal-blue-color has-text-color" style="font-size:0.85rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase">Archive</p>
+		<!-- /wp:paragraph -->
+
+		<!-- wp:query-title {"type":"archive","style":{"spacing":{"margin":{"top":"var:preset|spacing|10","bottom":"var:preset|spacing|40"}}}} /-->
+
+		<!-- wp:query {"queryId":2,"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","inherit":true}} -->
+		<div class="wp-block-query">
+			<!-- wp:post-template -->
+				<!-- wp:group {"style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40"},"blockGap":"var:preset|spacing|20"},"border":{"bottom":{"color":"var:preset|color|light-cyan","style":"solid","width":"1px"}}},"layout":{"type":"constrained"}} -->
+				<div class="wp-block-group" style="border-bottom-color:var(--wp--preset--color--light-cyan);border-bottom-style:solid;border-bottom-width:1px;padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)">
+					<!-- wp:post-title {"level":2,"isLink":true} /-->
+					<!-- wp:post-excerpt {"moreText":"Read more →"} /-->
+					<!-- wp:post-date {"style":{"typography":{"fontSize":"0.85rem"}},"textColor":"bright-teal-blue"} /-->
+				</div>
+				<!-- /wp:group -->
+			<!-- /wp:post-template -->
+
+			<!-- wp:query-pagination {"layout":{"type":"flex","justifyContent":"space-between"},"style":{"spacing":{"margin":{"top":"var:preset|spacing|40"}}}} -->
+				<!-- wp:query-pagination-previous /-->
+				<!-- wp:query-pagination-numbers /-->
+				<!-- wp:query-pagination-next /-->
+			<!-- /wp:query-pagination -->
+		</div>
+		<!-- /wp:query -->
+	</div>
+	<!-- /wp:group -->
+
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->
