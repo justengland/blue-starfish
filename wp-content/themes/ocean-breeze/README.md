@@ -30,7 +30,7 @@ Requires WordPress 6.4+ and PHP 7.4+.
 
 ## Contents
 
-- **Templates:** front-page, index, single, page, page-no-title, page-wide, archive, search, 404
+- **Templates:** front-page, index, single, page, page-contact, page-location, page-no-title, page-wide, archive, search, 404
 - **Parts:** header (clean, logo + uppercase nav), footer (three-column, mono detail line)
 - **Pattern:** "Editorial Hero" (Patterns → Featured → Ocean Breeze)
 - **Fonts:** `assets/fonts/` — Fraunces (roman + italic) and Archivo, weight-variable woff2

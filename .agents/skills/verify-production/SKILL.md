@@ -34,6 +34,7 @@ Requires **full network** (curl + SSH). Uses `REMOTE_HOST` / `REMOTE_DIR` from [
 | Homepage | `verify_homepage` | `VERIFY_URL` contains `VERIFY_GREP` |
 | Contact form file | `verify_contact_form_remote` | Server theme file has expected autoreply `from_name` |
 | Contact page | `verify_contact_page` | `VERIFY_CONTACT_URL` renders `#contact-form` |
+| Location page | `verify_location_page` | `VERIFY_LOCATION_URL` contains `VERIFY_LOCATION_GREP` (default `225 Waverly`) |
 
 ## Add a new check
 

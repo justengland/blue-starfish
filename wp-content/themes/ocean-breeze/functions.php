@@ -106,6 +106,25 @@ function ocean_breeze_ensure_contact_page() {
 add_action( 'init', 'ocean_breeze_ensure_contact_page' );
 
 /**
+ * Ensure a published Location page exists at /location/.
+ */
+function ocean_breeze_ensure_location_page() {
+	if ( get_page_by_path( 'location' ) ) {
+		return;
+	}
+
+	wp_insert_post(
+		array(
+			'post_title'  => __( 'Location', 'ocean-breeze' ),
+			'post_name'   => 'location',
+			'post_status' => 'publish',
+			'post_type'   => 'page',
+		)
+	);
+}
+add_action( 'init', 'ocean_breeze_ensure_location_page' );
+
+/**
  * Register block pattern category.
  */
 function ocean_breeze_register_pattern_categories() {
@@ -122,12 +141,35 @@ function ocean_breeze_register_pattern_categories() {
 add_action( 'init', 'ocean_breeze_register_pattern_categories' );
 
 /**
- * Custom AIOSEO Description for the Front Page
+ * Custom AIOSEO meta title for key pages.
+ *
+ * @param string $title Current title.
+ * @return string
  */
-function ocean_breeze_custom_front_page_description( $description ) {
+function ocean_breeze_custom_aioseo_title( $title ) {
+	if ( is_front_page() ) {
+		return $title;
+	}
+	if ( is_page( 'location' ) ) {
+		return 'Location & Directions | Blue Starfish Guesthouse | Corpus Christi Bay Area';
+	}
+	return $title;
+}
+add_filter( 'aioseo_title', 'ocean_breeze_custom_aioseo_title' );
+
+/**
+ * Custom AIOSEO meta description for key pages.
+ *
+ * @param string $description Current description.
+ * @return string
+ */
+function ocean_breeze_custom_aioseo_description( $description ) {
 	if ( is_front_page() ) {
 		return 'Discover two private guesthouses in Corpus Christi for mid-term stays. Enjoy full kitchens, a shared courtyard, and coastal charm minutes from TAMUCC and McGee Beach.';
 	}
+	if ( is_page( 'location' ) ) {
+		return 'Stay at Blue Starfish Guesthouse, 225 Waverly Dr, Corpus Christi TX 78412. Bay-area mid-term rentals near TAMUCC, the Medical District, and McGee Beach.';
+	}
 	return $description;
 }
-add_filter( 'aioseo_description', 'ocean_breeze_custom_front_page_description' );
+add_filter( 'aioseo_description', 'ocean_breeze_custom_aioseo_description' );
