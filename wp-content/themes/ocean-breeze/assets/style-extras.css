@@ -72,19 +72,22 @@ h1 em, h2 em { font-style: italic; font-weight: 480; }
 /* Contact form (shortcode on /contact/ page) */
 .ocean-breeze-contact-form {
 	margin-top: var(--wp--preset--spacing--40);
-	max-width: 36rem;
+	max-width: 44rem;
 }
 .ocean-breeze-contact-form__form {
 	display: flex;
 	flex-direction: column;
-	gap: 1.5rem;
+	gap: 1.75rem;
 }
 
+.ocean-breeze-contact-form__row {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1.75rem;
+}
 @media (min-width: 600px) {
 	.ocean-breeze-contact-form__row {
-		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 1.5rem;
 	}
 }
 
@@ -95,8 +98,11 @@ h1 em, h2 em { font-style: italic; font-weight: 480; }
 	display: block;
 	margin-bottom: 0.5rem;
 	font-family: var(--wp--preset--font-family--body);
-	font-weight: 500;
-	color: var(--wp--preset--color--deep-twilight);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--wp--preset--color--frosted-blue);
 }
 .has-deep-twilight-background-color .ocean-breeze-contact-form__field label {
 	color: var(--wp--preset--color--frosted-blue);
@@ -104,35 +110,76 @@ h1 em, h2 em { font-style: italic; font-weight: 480; }
 
 .ocean-breeze-contact-form__field input,
 .ocean-breeze-contact-form__field textarea {
+	box-sizing: border-box;
 	width: 100%;
-	padding: 0.85rem 1.1rem;
-	border: 1px solid var(--wp--preset--color--deep-twilight);
+	padding: 0.9rem 1.1rem;
+	border: 1px solid rgba(144, 224, 239, 0.3); /* frosted-blue at low opacity */
 	border-radius: 0;
-	background: var(--wp--preset--color--paper);
-	color: var(--wp--preset--color--ink);
+	background: rgba(255, 255, 255, 0.06);
+	color: var(--wp--preset--color--paper);
 	font-family: var(--wp--preset--font-family--body);
 	font-size: var(--wp--preset--font-size--medium);
-	transition: border-color 0.2s, box-shadow 0.2s;
+	transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.ocean-breeze-contact-form__field textarea {
+	resize: vertical;
+	min-height: 9rem;
+}
+
+.ocean-breeze-contact-form__field input::placeholder,
+.ocean-breeze-contact-form__field textarea::placeholder {
+	color: rgba(202, 240, 248, 0.35); /* light-cyan muted */
 }
 
 .ocean-breeze-contact-form__field input:focus,
 .ocean-breeze-contact-form__field textarea:focus {
 	border-color: var(--wp--preset--color--turquoise-surf);
+	background: rgba(255, 255, 255, 0.09);
 	outline: none;
 	box-shadow: 0 0 0 1px var(--wp--preset--color--turquoise-surf);
 }
 
-.has-deep-twilight-background-color .ocean-breeze-contact-form__field input,
-.has-deep-twilight-background-color .ocean-breeze-contact-form__field textarea {
-	background: rgba(255, 255, 255, 0.05);
-	border-color: rgba(255, 255, 255, 0.2);
-	color: var(--wp--preset--color--paper);
+/* Submit: same block-button row as availability pages */
+.ocean-breeze-contact-form__actions {
+	margin-top: var(--wp--preset--spacing--30);
 }
 
-.has-deep-twilight-background-color .ocean-breeze-contact-form__field input:focus,
-.has-deep-twilight-background-color .ocean-breeze-contact-form__field textarea:focus {
-	border-color: var(--wp--preset--color--frosted-blue);
-	box-shadow: 0 0 0 1px var(--wp--preset--color--frosted-blue);
+.ocean-breeze-contact-form__actions .wp-block-button {
+	margin: 0;
+}
+
+.ocean-breeze-contact-form__submit {
+	width: auto;
+	min-width: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	appearance: none;
+	line-height: 1;
+	border: none;
+	cursor: pointer;
+	text-align: center;
+}
+
+.ocean-breeze-contact-form__submit:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+/* Turnstile below submit (bottom of form) */
+.ocean-breeze-contact-form__turnstile {
+	margin-top: var(--wp--preset--spacing--40);
+	line-height: 0;
+}
+
+/* Notice banner */
+.ocean-breeze-contact-form__notice {
+	padding: 1rem 1.25rem;
+	margin-bottom: 0;
+	border-radius: 0;
+}
+.ocean-breeze-contact-form__notice p {
+	margin: 0;
 }
 
 /* Modal styles */
@@ -145,14 +192,14 @@ h1 em, h2 em { font-style: italic; font-weight: 480; }
 	width: 400px;
 }
 .ocean-breeze-contact-modal::backdrop {
-	background: rgba(3, 4, 94, 0.7); /* deep-twilight with opacity */
+	background: rgba(3, 4, 94, 0.7);
 	backdrop-filter: blur(4px);
 }
 .ocean-breeze-contact-modal__content {
 	background: var(--wp--preset--color--paper);
 	padding: var(--wp--preset--spacing--40);
 	border-top: 4px solid var(--wp--preset--color--turquoise-surf);
-	box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+	box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 	text-align: center;
 }
 .ocean-breeze-contact-modal__title {
@@ -171,14 +218,47 @@ h1 em, h2 em { font-style: italic; font-weight: 480; }
 	width: 100%;
 }
 
-.ocean-breeze-contact-form__notice {
-	padding: 1rem;
-	margin-bottom: 1rem;
-	border-radius: 0;
+/* Availability calendars (Turnstile-gated iframe mounts) */
+.ocean-breeze-availability {
+	margin-top: var(--wp--preset--spacing--40);
+	margin-bottom: var(--wp--preset--spacing--40);
 }
-.ocean-breeze-contact-form__notice p {
-	margin: 0;
+
+.ocean-breeze-availability__prompt {
+	margin-bottom: var(--wp--preset--spacing--30);
+	font-size: 1.0625rem;
+	line-height: 1.5;
 }
-.ocean-breeze-contact-form__actions {
-	margin: 0;
+
+.ocean-breeze-availability__turnstile {
+	margin-bottom: var(--wp--preset--spacing--30);
+	line-height: 0;
+}
+
+.ocean-breeze-availability__unit + .ocean-breeze-availability__unit {
+	margin-top: var(--wp--preset--spacing--50);
+}
+
+.ocean-breeze-availability__unit-title {
+	margin: 0 0 var(--wp--preset--spacing--20);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 1.5rem;
+	font-weight: 380;
+}
+
+.ocean-breeze-availability__frame {
+	position: relative;
+	width: 100%;
+	max-width: 800px;
+	aspect-ratio: 4 / 3;
+	min-height: 320px;
+	background: rgba(3, 4, 94, 0.04);
+}
+
+.ocean-breeze-availability__frame iframe {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
 }
