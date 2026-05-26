@@ -61,6 +61,18 @@ Override: `REMOTE_HOST=bluestarfish REMOTE_DIR=bluestarfishguesthouse.com .agent
 - **Plugins:** Standard WP install on DreamHost; avoid bulk-editing plugin/vendor trees unless fixing a specific issue.
 - **Config:** `wp-config.php` exists on server and locally after sync-down; never commit secrets.
 
+### Site Editor vs theme files (FSE)
+
+Block themes ship templates and template parts as files under `wp-content/themes/ocean-breeze/`. Once someone edits in **Appearance → Editor**, WordPress stores a **customized copy in the database** (`wp_template`, `wp_template_part`). That DB version is what visitors see — rsync/deploy updates the theme files only and does **not** replace those saved customizations.
+
+**Prefer working with WordPress, not forcing it:**
+
+- After `update.sh`, if layout changes are not visible, assume a DB override or cache — do **not** use WP-CLI to overwrite template parts from disk unless the user explicitly asks.
+- Normal path: user applies or reverts changes in the Site Editor, or pulls server state into the repo with `sync-down.sh` when their editor work should become the source of truth.
+- If the user edited only in the Site Editor, their work lives on the server until synced down; repo edits and deploy alone will not update the live header/footer until they align editor + theme or choose to reset a template part in the editor.
+
+**Deploy still matters:** theme files on disk are the repo’s source of truth for version control and the baseline for new installs; the editor is the source of truth for customized production layout until you intentionally reconcile the two.
+
 ## Staging / pre-launch
 
 While the site is under construction, keep **robots.txt** restrictive (or noindex via plugin). Remove or relax blocking rules before launch.

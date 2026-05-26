@@ -20,7 +20,7 @@
 	<!-- wp:buttons -->
 	<div class="wp-block-buttons">
 		<!-- wp:button -->
-		<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="mailto:rentals@bluestarfishguesthouse.com?subject=Availability%20inquiry">Contact for availability</a></div>
+		<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/contact/">Contact for availability</a></div>
 		<!-- /wp:button -->
 	</div>
 	<!-- /wp:buttons -->

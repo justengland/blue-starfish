@@ -1,0 +1,27 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","layout":{"type":"default"}} -->
+<main class="wp-block-group">
+
+	<!-- wp:group {"tagName":"section","align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60","right":"var:preset|spacing|40","left":"var:preset|spacing|40"}}},"backgroundColor":"deep-twilight","textColor":"paper","layout":{"type":"constrained","contentSize":"1000px"}} -->
+	<section class="wp-block-group alignfull has-paper-color has-deep-twilight-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--60);padding-right:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--60);padding-left:var(--wp--preset--spacing--40)">
+		<!-- wp:paragraph {"style":{"typography":{"fontSize":"0.8125rem","fontWeight":"600","textTransform":"uppercase","letterSpacing":"0.16em"}},"textColor":"turquoise-surf","fontFamily":"body"} -->
+		<p class="has-turquoise-surf-color has-text-color has-body-font-family" style="font-size:0.8125rem;font-weight:600;letter-spacing:0.16em;text-transform:uppercase">Inquire</p>
+		<!-- /wp:paragraph -->
+		<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(2.5rem, 6vw, 5rem)","lineHeight":"1","letterSpacing":"-0.02em","fontWeight":"380"},"spacing":{"margin":{"top":"var:preset|spacing|20","bottom":"var:preset|spacing|30"}}},"textColor":"paper"} -->
+		<h1 class="wp-block-heading has-paper-color has-text-color" style="margin-top:var(--wp--preset--spacing--20);margin-bottom:var(--wp--preset--spacing--30);font-size:clamp(2.5rem, 6vw, 5rem);font-weight:380;letter-spacing:-0.02em;line-height:1">Contact us</h1>
+		<!-- /wp:heading -->
+		<!-- wp:paragraph {"style":{"typography":{"fontSize":"1.25rem","lineHeight":"1.6"},"spacing":{"margin":{"bottom":"var:preset|spacing|40"}}},"textColor":"frosted-blue"} -->
+		<p class="has-frosted-blue-color has-text-color" style="margin-bottom:var(--wp--preset--spacing--40);font-size:1.25rem;line-height:1.6">Send a message for rates, availability, and which guesthouse fits your stay. No booking platforms—just a straightforward conversation from your first message through move-in.</p>
+		<!-- /wp:paragraph -->
+
+		<!-- wp:shortcode -->
+		[simple_contact_form]
+		<!-- /wp:shortcode -->
+	</section>
+	<!-- /wp:group -->
+
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

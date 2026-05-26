@@ -66,6 +66,41 @@ function ocean_breeze_enqueue_styles() {
 add_action( 'wp_enqueue_scripts', 'ocean_breeze_enqueue_styles' );
 
 /**
+ * Output favicon links in <head> if no Site Icon is set in the Customizer.
+ */
+function ocean_breeze_favicons() {
+	if ( ! has_site_icon() ) {
+		$theme_uri = get_template_directory_uri();
+		echo '<link rel="icon" href="' . esc_url( $theme_uri . '/assets/images/favicon/favicon.ico' ) . '" sizes="any">' . "\n";
+		echo '<link rel="icon" href="' . esc_url( $theme_uri . '/assets/images/favicon/icon.svg' ) . '" type="image/svg+xml">' . "\n";
+		echo '<link rel="apple-touch-icon" href="' . esc_url( $theme_uri . '/assets/images/favicon/apple-touch-icon.png' ) . '">' . "\n";
+	}
+}
+add_action( 'wp_head', 'ocean_breeze_favicons' );
+
+// Include simple contact form with math captcha
+require_once get_template_directory() . '/inc-contact-form.php';
+
+/**
+ * Ensure a published Contact page exists at /contact/.
+ */
+function ocean_breeze_ensure_contact_page() {
+	if ( get_page_by_path( 'contact' ) ) {
+		return;
+	}
+
+	wp_insert_post(
+		array(
+			'post_title'  => __( 'Contact', 'ocean-breeze' ),
+			'post_name'   => 'contact',
+			'post_status' => 'publish',
+			'post_type'   => 'page',
+		)
+	);
+}
+add_action( 'init', 'ocean_breeze_ensure_contact_page' );
+
+/**
  * Register block pattern category.
  */
 function ocean_breeze_register_pattern_categories() {
