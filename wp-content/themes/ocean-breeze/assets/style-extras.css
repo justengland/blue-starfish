@@ -77,31 +77,100 @@ h1 em, h2 em { font-style: italic; font-weight: 480; }
 .ocean-breeze-contact-form__form {
 	display: flex;
 	flex-direction: column;
-	gap: 1rem;
+	gap: 1.5rem;
 }
+
+@media (min-width: 600px) {
+	.ocean-breeze-contact-form__row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+	}
+}
+
 .ocean-breeze-contact-form__field {
 	margin: 0;
 }
 .ocean-breeze-contact-form__field label {
 	display: block;
 	margin-bottom: 0.5rem;
+	font-family: var(--wp--preset--font-family--body);
 	font-weight: 500;
+	color: var(--wp--preset--color--deep-twilight);
 }
+.has-deep-twilight-background-color .ocean-breeze-contact-form__field label {
+	color: var(--wp--preset--color--frosted-blue);
+}
+
 .ocean-breeze-contact-form__field input,
 .ocean-breeze-contact-form__field textarea {
 	width: 100%;
-	padding: 0.75rem 1rem;
-	border: 1px solid var(--wp--preset--color--frosted-blue);
+	padding: 0.85rem 1.1rem;
+	border: 1px solid var(--wp--preset--color--deep-twilight);
 	border-radius: 0;
 	background: var(--wp--preset--color--paper);
-	color: var(--wp--preset--color--deep-twilight);
+	color: var(--wp--preset--color--ink);
+	font-family: var(--wp--preset--font-family--body);
+	font-size: var(--wp--preset--font-size--medium);
+	transition: border-color 0.2s, box-shadow 0.2s;
 }
+
+.ocean-breeze-contact-form__field input:focus,
+.ocean-breeze-contact-form__field textarea:focus {
+	border-color: var(--wp--preset--color--turquoise-surf);
+	outline: none;
+	box-shadow: 0 0 0 1px var(--wp--preset--color--turquoise-surf);
+}
+
 .has-deep-twilight-background-color .ocean-breeze-contact-form__field input,
 .has-deep-twilight-background-color .ocean-breeze-contact-form__field textarea {
-	background: rgba(255, 255, 255, 0.08);
-	border-color: var(--wp--preset--color--frosted-blue);
+	background: rgba(255, 255, 255, 0.05);
+	border-color: rgba(255, 255, 255, 0.2);
 	color: var(--wp--preset--color--paper);
 }
+
+.has-deep-twilight-background-color .ocean-breeze-contact-form__field input:focus,
+.has-deep-twilight-background-color .ocean-breeze-contact-form__field textarea:focus {
+	border-color: var(--wp--preset--color--frosted-blue);
+	box-shadow: 0 0 0 1px var(--wp--preset--color--frosted-blue);
+}
+
+/* Modal styles */
+.ocean-breeze-contact-modal {
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	max-width: 90vw;
+	width: 400px;
+}
+.ocean-breeze-contact-modal::backdrop {
+	background: rgba(3, 4, 94, 0.7); /* deep-twilight with opacity */
+	backdrop-filter: blur(4px);
+}
+.ocean-breeze-contact-modal__content {
+	background: var(--wp--preset--color--paper);
+	padding: var(--wp--preset--spacing--40);
+	border-top: 4px solid var(--wp--preset--color--turquoise-surf);
+	box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+	text-align: center;
+}
+.ocean-breeze-contact-modal__title {
+	font-family: var(--wp--preset--font-family--display);
+	color: var(--wp--preset--color--deep-twilight);
+	margin-top: 0;
+	margin-bottom: var(--wp--preset--spacing--20);
+}
+.ocean-breeze-contact-modal__text {
+	margin-bottom: var(--wp--preset--spacing--30);
+	color: var(--wp--preset--color--ink);
+	font-family: var(--wp--preset--font-family--body);
+	font-size: var(--wp--preset--font-size--medium);
+}
+.ocean-breeze-contact-modal__close {
+	width: 100%;
+}
+
 .ocean-breeze-contact-form__notice {
 	padding: 1rem;
 	margin-bottom: 1rem;
