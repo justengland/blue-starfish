@@ -1,0 +1,16 @@
+# Secrets and local config
+wp-config.php
+local-keys.php
+local-smtp.php
+.smtp-credentials
+.env
+*.pem
+*.key
+
+# Caches and uploads
+wp-content/cache/
+wp-content/uploads/
+ocean-breeze.zip
+
+# Scraped data
+scrape/

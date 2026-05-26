@@ -56,11 +56,14 @@ function ocean_breeze_enqueue_styles() {
 	);
 
 	// Optional small front-end refinements not expressible in theme.json.
+	$extras_path = get_template_directory() . '/assets/style-extras.css';
+	$extras_ver  = file_exists( $extras_path ) ? filemtime( $extras_path ) : wp_get_theme()->get( 'Version' );
+	
 	wp_enqueue_style(
 		'ocean-breeze-extras',
 		get_template_directory_uri() . '/assets/style-extras.css',
 		array( 'ocean-breeze-style' ),
-		wp_get_theme()->get( 'Version' )
+		$extras_ver
 	);
 }
 add_action( 'wp_enqueue_scripts', 'ocean_breeze_enqueue_styles' );

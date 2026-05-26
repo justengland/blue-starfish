@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "deny": [
+      "Shell(rm -rf /*)",
+      "Shell(git push --force*)",
+      "Shell(rsync*)",
+      "Shell(scp*)",
+      "Shell(ssh*)",
+      "Shell(wp eval*)",
+      "Shell(curl *bluestarfishguesthouse*)",
+      "Write(wp-config.php)",
+      "Write(local-keys.php)",
+      "Write(local-smtp.php)",
+      "Write(.smtp-credentials)"
+    ]
+  }
+}
