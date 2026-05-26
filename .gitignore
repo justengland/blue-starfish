@@ -7,3 +7,5 @@ ocean-breeze.zip
 local-keys.php
 local-smtp.php
 .smtp-credentials
+
+.worktrees/
