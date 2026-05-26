@@ -54,8 +54,8 @@ function ocean_breeze_contact_form_debug_enabled() {
 		return (bool) OB_CONTACT_FORM_DEBUG;
 	}
 
-	// Enabled by default until mail delivery is confirmed; set OB_CONTACT_FORM_DEBUG to false in wp-config.
-	return true;
+	// Disabled by default; set OB_CONTACT_FORM_DEBUG to true in wp-config to troubleshoot mail.
+	return false;
 }
 
 /**
@@ -514,6 +514,11 @@ function ocean_breeze_contact_form_shortcode() {
 					if ( ocean_breeze_contact_form_debug_enabled() ) {
 						$debug['result'] = 'notification and auto-reply sent';
 					}
+					// Return success response to handle frontend modal display
+					if ( isset( $_POST['is_ajax'] ) ) {
+						wp_send_json_success( __( 'Thank you! Your message has been sent.', 'ocean-breeze' ) );
+						exit;
+					}
 					$message = ocean_breeze_contact_form_notice(
 						__( 'Thank you! Your message has been sent.', 'ocean-breeze' ),
 						'success'
@@ -521,6 +526,10 @@ function ocean_breeze_contact_form_shortcode() {
 				} else {
 					if ( ocean_breeze_contact_form_debug_enabled() ) {
 						$debug['result'] = 'one or both emails failed (see notify_sent / autoreply_sent)';
+					}
+					if ( isset( $_POST['is_ajax'] ) ) {
+						wp_send_json_error( __( 'There was a problem sending your message. Please try again later.', 'ocean-breeze' ) );
+						exit;
 					}
 					$message = ocean_breeze_contact_form_notice(
 						__( 'There was a problem sending your message. Please try again later.', 'ocean-breeze' ),
@@ -542,16 +551,32 @@ function ocean_breeze_contact_form_shortcode() {
 			echo wp_kses_post( ocean_breeze_contact_form_render_debug( $debug ) );
 		}
 		?>
+		
+		<!-- Modal template, hidden by default -->
+		<dialog id="contact-success-modal" class="ocean-breeze-contact-modal">
+			<div class="ocean-breeze-contact-modal__content">
+				<h3 class="ocean-breeze-contact-modal__title"><?php esc_html_e( 'Message Sent', 'ocean-breeze' ); ?></h3>
+				<p class="ocean-breeze-contact-modal__text" id="contact-success-message"></p>
+				<button type="button" class="ocean-breeze-contact-modal__close wp-block-button__link wp-element-button">
+					<?php esc_html_e( 'Return to Home', 'ocean-breeze' ); ?>
+				</button>
+			</div>
+		</dialog>
+
 		<form method="post" action="<?php echo esc_url( ocean_breeze_contact_page_url() ); ?>#contact-form" id="contact-form" class="ocean-breeze-contact-form__form">
 			<?php wp_nonce_field( 'ob_contact_form', 'ob_contact_nonce' ); ?>
-			<p class="ocean-breeze-contact-form__field">
-				<label for="ob_name"><?php esc_html_e( 'Name', 'ocean-breeze' ); ?></label>
-				<input type="text" name="ob_name" id="ob_name" required autocomplete="name">
-			</p>
-			<p class="ocean-breeze-contact-form__field">
-				<label for="ob_email"><?php esc_html_e( 'Email', 'ocean-breeze' ); ?></label>
-				<input type="email" name="ob_email" id="ob_email" required autocomplete="email">
-			</p>
+			<input type="hidden" name="is_ajax" value="1">
+			
+			<div class="ocean-breeze-contact-form__row">
+				<p class="ocean-breeze-contact-form__field">
+					<label for="ob_name"><?php esc_html_e( 'Name', 'ocean-breeze' ); ?></label>
+					<input type="text" name="ob_name" id="ob_name" required autocomplete="name">
+				</p>
+				<p class="ocean-breeze-contact-form__field">
+					<label for="ob_email"><?php esc_html_e( 'Email', 'ocean-breeze' ); ?></label>
+					<input type="email" name="ob_email" id="ob_email" required autocomplete="email">
+				</p>
+			</div>
 			<p class="ocean-breeze-contact-form__field">
 				<label for="ob_message"><?php esc_html_e( 'Message', 'ocean-breeze' ); ?></label>
 				<textarea name="ob_message" id="ob_message" rows="5" required></textarea>
@@ -563,6 +588,8 @@ function ocean_breeze_contact_form_shortcode() {
 				</div>
 			<?php endif; ?>
 
+			<div id="contact-form-error" class="ocean-breeze-contact-form__notice ocean-breeze-contact-form__notice--error" style="display:none;" aria-live="polite"></div>
+
 			<p class="ocean-breeze-contact-form__actions">
 				<button type="submit" name="ob_contact_submit" class="wp-block-button__link wp-element-button">
 					<?php esc_html_e( 'Send message', 'ocean-breeze' ); ?>
@@ -570,6 +597,105 @@ function ocean_breeze_contact_form_shortcode() {
 			</p>
 		</form>
 	</div>
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			var form = document.getElementById('contact-form');
+			if (!form) return;
+			
+			form.addEventListener('submit', function(e) {
+				e.preventDefault();
+				
+				var submitButton = form.querySelector('button[type="submit"]');
+				var errorDiv = document.getElementById('contact-form-error');
+				var originalText = submitButton.textContent;
+				
+				submitButton.disabled = true;
+				submitButton.textContent = '<?php esc_attr_e( 'Sending...', 'ocean-breeze' ); ?>';
+				errorDiv.style.display = 'none';
+				
+				var formData = new FormData(form);
+				// Make sure we pass the submit name that the backend checks for
+				formData.append('ob_contact_submit', '1');
+				
+				fetch(form.action, {
+					method: 'POST',
+					body: formData,
+					headers: {
+						'X-Requested-With': 'XMLHttpRequest'
+					}
+				})
+				.then(function(response) {
+					return response.json();
+				})
+				.then(function(data) {
+					submitButton.disabled = false;
+					submitButton.textContent = originalText;
+					
+					if (data.success) {
+						var modal = document.getElementById('contact-success-modal');
+						var messageEl = document.getElementById('contact-success-message');
+						
+						if (modal && messageEl) {
+							messageEl.textContent = data.data;
+							modal.showModal();
+							
+							var closeBtn = modal.querySelector('.ocean-breeze-contact-modal__close');
+							if (closeBtn) {
+								closeBtn.addEventListener('click', function() {
+									modal.close();
+									window.location.href = '<?php echo esc_url( home_url( '/' ) ); ?>';
+								});
+							}
+							
+							// Close if clicked outside
+							modal.addEventListener('click', function(e) {
+								var dialogDimensions = modal.getBoundingClientRect()
+								if (
+									e.clientX < dialogDimensions.left ||
+									e.clientX > dialogDimensions.right ||
+									e.clientY < dialogDimensions.top ||
+									e.clientY > dialogDimensions.bottom
+								) {
+									modal.close();
+									window.location.href = '<?php echo esc_url( home_url( '/' ) ); ?>';
+								}
+							});
+						} else {
+							// Fallback if modal not supported or missing
+							alert(data.data);
+							window.location.href = '<?php echo esc_url( home_url( '/' ) ); ?>';
+						}
+					} else {
+						if (errorDiv) {
+							errorDiv.innerHTML = '<p>' + (data.data || 'Error submitting form.') + '</p>';
+							errorDiv.style.display = 'block';
+						} else {
+							alert(data.data || 'Error submitting form.');
+						}
+						
+						// Reset turnstile if exists
+						if (typeof turnstile !== 'undefined') {
+							turnstile.reset();
+						}
+					}
+				})
+				.catch(function(error) {
+					submitButton.disabled = false;
+					submitButton.textContent = originalText;
+					if (errorDiv) {
+						errorDiv.innerHTML = '<p><?php esc_attr_e( 'A network error occurred. Please try again.', 'ocean-breeze' ); ?></p>';
+						errorDiv.style.display = 'block';
+					} else {
+						alert('<?php esc_attr_e( 'A network error occurred. Please try again.', 'ocean-breeze' ); ?>');
+					}
+					
+					if (typeof turnstile !== 'undefined') {
+						turnstile.reset();
+					}
+				});
+			});
+		});
+	</script>
 	<?php
 	return (string) ob_get_clean();
 }
