@@ -7,10 +7,18 @@ WordPress site for **https://bluestarfishguesthouse.com/** on DreamHost shared h
 | Area | Purpose |
 |------|---------|
 | `wp-content/themes/ocean-breeze/` | Custom FSE block theme (source of truth for layout) |
-| `.agents/skills/` | Agent skills and deploy scripts — **never synced** to DreamHost |
+| `.agents/skills/` | Agent skills and scripts — **never synced** to DreamHost |
 | `scrape/` | Local research captures — **never synced** |
 
 Read **AGENTS.md** first for stack and hosting context. Use **project skills** under `.agents/skills/` for repeatable workflows.
+
+## Agent rules: deploy and verify
+
+**Deploy** — Use skill **deploy-dreamhost** only. Run scripts under `.agents/skills/deploy-dreamhost/scripts/`. Do not run ad-hoc `rsync`, `scp`, or inline `ssh` for routine push/pull unless a script is missing and the user explicitly asks.
+
+**Verify** — Use skill **verify-production** only. Run `.agents/skills/verify-production/scripts/verify-all.sh` (or let `update.sh` / `deploy.sh` invoke it). Do **not** run one-off production checks (`curl` against the live site, `ssh … grep` on theme files, `wp eval` smoke tests) for the same purpose.
+
+**Adding a new production check** — Implement `verify_<name>()` in [verify-production/scripts/verify.sh](.agents/skills/verify-production/scripts/verify.sh), call it from `verify_deploy()`, and document it in [verify-production/SKILL.md](.agents/skills/verify-production/SKILL.md). Never leave the check only in chat or a one-off command.
 
 ## Remote access (DreamHost)
 
@@ -35,13 +43,13 @@ OpenSSH may warn about post-quantum key exchange on DreamHost shared servers; sa
 | `~/bluestarfishguesthouse.com/` | WordPress web root (sync target) |
 | `~/bluestarfishguesthouse.com/robots.txt` | Crawl rules (edit during pre-launch staging) |
 
-## Deploy workflow
+## Deploy workflow (deploy-dreamhost)
 
-Use bash scripts in `.agents/skills/deploy-dreamhost/scripts/` only (skill **deploy-dreamhost**).
+Read [.agents/skills/deploy-dreamhost/SKILL.md](.agents/skills/deploy-dreamhost/SKILL.md) before deploying.
 
 | Script | When |
 |--------|------|
-| `update.sh` | Routine push + cache flush + verify (theme already active) |
+| `update.sh` | Routine push + cache flush + verify-production (theme already active) |
 | `deploy.sh` | First deploy, install/activate Ocean Breeze, site title |
 | `sync-up.sh` | Files only, repo → server |
 | `sync-down.sh` | Mirror server → repo (`--delete` locally) |
@@ -51,9 +59,27 @@ Use bash scripts in `.agents/skills/deploy-dreamhost/scripts/` only (skill **dep
 .agents/skills/deploy-dreamhost/scripts/deploy.sh
 ```
 
-Excluded from rsync: `.agents/`, `.cursor/`, `.git/`, `scrape/`, `AGENTS.md`, `ocean-breeze.zip`.
+| Flag | Effect |
+|------|--------|
+| `--skip-verify` | Skip verify-production (deploy only) |
+| `--files-only` | Rsync only; no cache flush or verify |
+| `--pull` | `sync-down.sh` only |
+
+**Never synced** (see [deploy-dreamhost/scripts/config.sh](.agents/skills/deploy-dreamhost/scripts/config.sh)): `.agents/`, `.cursor/`, `.git/`, `scrape/`, `AGENTS.md`, `ocean-breeze.zip`, `wp-config.php`, `local-keys.php`, `local-smtp.php`, `.smtp-credentials`.
 
 Override: `REMOTE_HOST=bluestarfish REMOTE_DIR=bluestarfishguesthouse.com .agents/skills/deploy-dreamhost/scripts/sync-up.sh`
+
+## Verify workflow (verify-production)
+
+Read [.agents/skills/verify-production/SKILL.md](.agents/skills/verify-production/SKILL.md) before adding or running checks.
+
+```bash
+.agents/skills/verify-production/scripts/verify-all.sh
+```
+
+Runs after every `update.sh` / `deploy.sh` unless `--skip-verify`. Current checks: homepage grep, contact form markup on the contact URL, contact form PHP on the server.
+
+Override examples: `VERIFY_GREP="Guesthouse"` or `VERIFY_CONTACT_URL=…` (see verify skill).
 
 ## WordPress stack
 
@@ -86,5 +112,6 @@ The [Claude Code for WordPress workflow doc](https://docs.google.com/document/d/
 | Skill | When to use |
 |-------|-------------|
 | `deploy-dreamhost` | Push/pull, routine update, full deploy, cache flush |
+| `verify-production` | Post-deploy smoke tests; extend `verify.sh` for new checks |
 | `manage-theme` | Templates, patterns, `theme.json`, Site Editor |
 | `manage-content` | Copy, SEO, robots.txt, launch checklist |

@@ -13,26 +13,25 @@ REMOTE_WP="cd ${REMOTE_DIR} &&"
 
 SITE_NAME="${SITE_NAME:-Blue Starfish Guest Houses in the Corpus Christi bay area.}"
 SITE_TAGLINE="${SITE_TAGLINE:-Corpus Christi mid-term guesthouse rentals.}"
-VERIFY_URL="${VERIFY_URL:-https://www.bluestarfishguesthouse.com/}"
-VERIFY_GREP="${VERIFY_GREP:-Blue Starfish}"
+VERIFY_ALL="${SCRIPT_DIR}/../../verify-production/scripts/verify-all.sh"
 
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [options]
 
-  Push repo to DreamHost, activate Ocean Breeze, flush caches, verify homepage.
+  Push repo to DreamHost, activate Ocean Breeze, flush caches, run verify-production.
 
 Options:
   --skip-sync       Skip rsync (files already on server)
   --skip-activate   Skip wp theme activate (already active)
-  --skip-verify     Skip curl homepage check
+  --skip-verify     Skip verify-production smoke tests
   --install-zip     Force unzip ocean-breeze.zip into wp-content/themes/
   -h, --help        Show this help
 
 Environment:
   REMOTE_HOST, REMOTE_DIR  (see config.sh)
   SITE_NAME, SITE_TAGLINE  WordPress blogname / blogdescription
-  VERIFY_URL, VERIFY_GREP  Post-deploy smoke test
+  VERIFY_*                 Passed through to verify-production (see verify.sh)
 EOF
 }
 
@@ -98,14 +97,7 @@ remote_wp "wp cache flush" || true
 remote_wp "wp eval 'if ( function_exists( \"wp_cache_clear_cache\" ) ) { wp_cache_clear_cache(); echo \"wp-super-cache cleared\\n\"; }'" || true
 
 if [[ "${SKIP_VERIFY}" -eq 0 ]]; then
-  echo "=== Verify ${VERIFY_URL} ==="
-  html=$(curl -sL --max-time 30 "${VERIFY_URL}" || true)
-  if echo "${html}" | grep -q "${VERIFY_GREP}"; then
-    echo "OK: homepage contains \"${VERIFY_GREP}\""
-  else
-    echo "WARN: homepage did not match \"${VERIFY_GREP}\" — hard-refresh or check Reading settings" >&2
-    exit 1
-  fi
+  "${VERIFY_ALL}"
 fi
 
 echo "=== Done ==="

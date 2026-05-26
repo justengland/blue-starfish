@@ -14,4 +14,8 @@ RSYNC_EXCLUDES=(
   --exclude 'scrape/'
   --exclude 'AGENTS.md'
   --exclude 'ocean-breeze.zip'
+  --exclude 'local-keys.php'
+  --exclude 'local-smtp.php'
+  --exclude '.smtp-credentials'
+  --exclude 'wp-config.php'
 )

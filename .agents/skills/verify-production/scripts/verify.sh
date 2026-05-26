@@ -1,0 +1,52 @@
+# Production smoke tests (sourced by verify-all.sh; do not run ad-hoc checks outside this file).
+#
+# To add a new check: implement verify_<name>() here and call it from verify_deploy().
+
+VERIFY_URL="${VERIFY_URL:-https://www.bluestarfishguesthouse.com/}"
+VERIFY_GREP="${VERIFY_GREP:-Blue Starfish Guest}"
+VERIFY_CONTACT_URL="${VERIFY_CONTACT_URL:-https://www.bluestarfishguesthouse.com/contact/}"
+VERIFY_CONTACT_FORM_REL="${VERIFY_CONTACT_FORM_REL:-wp-content/themes/ocean-breeze/inc-contact-form.php}"
+VERIFY_CONTACT_FORM_GREP="${VERIFY_CONTACT_FORM_GREP:-from_name.*Blue Starfish}"
+
+verify_homepage() {
+  echo "=== Verify homepage ${VERIFY_URL} ==="
+  local html
+  html=$(curl -sL --max-time 30 "${VERIFY_URL}" || true)
+  if echo "${html}" | grep -q "${VERIFY_GREP}"; then
+    echo "OK: homepage contains \"${VERIFY_GREP}\""
+  else
+    echo "ERROR: homepage did not match \"${VERIFY_GREP}\" — hard-refresh or check Reading settings" >&2
+    return 1
+  fi
+}
+
+verify_contact_form_remote() {
+  echo "=== Verify contact form on ${REMOTE_HOST} ==="
+  local remote_file="${REMOTE_DIR}/${VERIFY_CONTACT_FORM_REL}"
+  if ssh "${REMOTE_HOST}" "grep -qE $(printf '%q' "${VERIFY_CONTACT_FORM_GREP}") $(printf '%q' "${remote_file}")"; then
+    echo "OK: ${VERIFY_CONTACT_FORM_REL} contains autoreply from_name (Blue Starfish)"
+  else
+    echo "ERROR: ${VERIFY_CONTACT_FORM_REL} missing expected from_name on server" >&2
+    return 1
+  fi
+}
+
+verify_contact_page() {
+  echo "=== Verify contact page ${VERIFY_CONTACT_URL} ==="
+  local html
+  html=$(curl -sL --max-time 30 "${VERIFY_CONTACT_URL}" || true)
+  if echo "${html}" | grep -q 'id="contact-form"'; then
+    echo "OK: contact page renders the contact form"
+  else
+    echo "ERROR: contact page missing #contact-form" >&2
+    return 1
+  fi
+}
+
+verify_deploy() {
+  local failed=0
+  verify_homepage || failed=1
+  verify_contact_form_remote || failed=1
+  verify_contact_page || failed=1
+  return "${failed}"
+}

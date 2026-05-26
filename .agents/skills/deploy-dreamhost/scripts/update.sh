@@ -7,8 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
 REMOTE_WP="cd ${REMOTE_DIR} &&"
-VERIFY_URL="${VERIFY_URL:-https://www.bluestarfishguesthouse.com/}"
-VERIFY_GREP="${VERIFY_GREP:-Blue Starfish}"
+VERIFY_ALL="${SCRIPT_DIR}/../../verify-production/scripts/verify-all.sh"
 
 usage() {
   cat <<EOF
@@ -21,12 +20,12 @@ Options:
   --pull            sync-down from server (mirror; deletes extra local files)
   --files-only      rsync only; skip WP-CLI cache flush
   --cache-only      flush caches on server; skip rsync
-  --skip-verify     skip homepage curl check
+  --skip-verify     skip verify-production smoke tests
   -h, --help        show this help
 
 Environment:
   REMOTE_HOST, REMOTE_DIR  (see config.sh)
-  VERIFY_URL, VERIFY_GREP  post-update smoke test
+  VERIFY_*                 passed through to verify-production (see verify.sh)
 EOF
 }
 
@@ -58,17 +57,6 @@ flush_caches() {
   remote_wp "wp eval 'if ( function_exists( \"wp_cache_clear_cache\" ) ) { wp_cache_clear_cache(); echo \"wp-super-cache cleared\\n\"; }'" || true
 }
 
-verify_homepage() {
-  echo "=== Verify ${VERIFY_URL} ==="
-  html=$(curl -sL --max-time 30 "${VERIFY_URL}" || true)
-  if echo "${html}" | grep -q "${VERIFY_GREP}"; then
-    echo "OK: homepage contains \"${VERIFY_GREP}\""
-  else
-    echo "WARN: homepage did not match \"${VERIFY_GREP}\" — hard-refresh the browser" >&2
-    exit 1
-  fi
-}
-
 echo "=== Blue Starfish update ==="
 
 if [[ "${DO_PULL}" -eq 1 ]]; then
@@ -88,7 +76,7 @@ if [[ "${FILES_ONLY}" -eq 0 ]]; then
 fi
 
 if [[ "${SKIP_VERIFY}" -eq 0 && "${DO_PULL}" -eq 0 ]]; then
-  verify_homepage
+  "${VERIFY_ALL}"
 fi
 
 echo "=== Done ==="

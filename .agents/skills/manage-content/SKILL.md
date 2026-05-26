@@ -66,4 +66,4 @@ Sources: `scrape/1/info.md`, `scrape/2/info.md`.
 - [ ] Remove staging noindex if added via plugin
 - [ ] Theme active: Ocean Breeze (`deploy.sh` if needed)
 - [ ] Forms and contact tested
-- [ ] `update.sh` for final files; verify production URL
+- [ ] `update.sh` for final files; or `verify-production/scripts/verify-all.sh`
