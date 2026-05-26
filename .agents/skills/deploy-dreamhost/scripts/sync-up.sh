@@ -10,7 +10,8 @@ REMOTE="${REMOTE_HOST}:${REMOTE_DIR}/"
 
 echo "Syncing up: ${REPO_ROOT}/ -> ${REMOTE}"
 
-rsync -avz \
+rsync -avz --no-times --omit-dir-times \
+  --exclude '.dh-diag/' \
   "${RSYNC_EXCLUDES[@]}" \
   "${REPO_ROOT}/" \
   "${REMOTE}"
