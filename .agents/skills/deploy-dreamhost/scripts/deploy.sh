@@ -92,9 +92,9 @@ echo "=== WordPress: clear file cache ==="
 ssh bluestarfish "cd bluestarfishguesthouse.com && rm -rf wp-content/cache/*" 2>&1
 
 echo "=== WordPress: permalinks + cache ==="
-remote_wp "wp rewrite flush"
-remote_wp "wp cache flush" || true
-remote_wp "wp eval 'if ( function_exists( \"wp_cache_clear_cache\" ) ) { wp_cache_clear_cache(); echo \"wp-super-cache cleared\\n\"; }'" || true
+remote_wp "wp rewrite flush --allow-root"
+remote_wp "wp cache flush --allow-root" || true
+remote_wp "wp super-cache flush --allow-root" 2>/dev/null || true
 
 if [[ "${SKIP_VERIFY}" -eq 0 ]]; then
   "${VERIFY_ALL}"

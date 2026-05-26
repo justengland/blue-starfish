@@ -84,6 +84,7 @@ add_action( 'wp_head', 'ocean_breeze_favicons' );
 // DreamHost SMTP + contact form (Turnstile keys: wp-config.php or local-keys.php).
 require_once get_template_directory() . '/inc-mail-smtp.php';
 require_once get_template_directory() . '/inc-contact-form.php';
+require_once get_template_directory() . '/inc-availability-calendars.php';
 
 /**
  * Ensure a published Contact page exists at /contact/.

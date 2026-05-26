@@ -47,14 +47,18 @@ while [[ $# -gt 0 ]]; do
 done
 
 remote_wp() {
-  ssh "${REMOTE_HOST}" "${REMOTE_WP} $*"
+  timeout "${REMOTE_CMD_TIMEOUT:-45s}" ssh \
+    -o BatchMode=yes \
+    -o ServerAliveInterval=10 \
+    -o ServerAliveCountMax=3 \
+    "${REMOTE_HOST}" "${REMOTE_WP} $*"
 }
 
 flush_caches() {
   echo "=== WordPress: flush caches ==="
-  remote_wp "wp rewrite flush"
-  remote_wp "wp cache flush" || true
-  remote_wp "wp eval 'if ( function_exists( \"wp_cache_clear_cache\" ) ) { wp_cache_clear_cache(); echo \"wp-super-cache cleared\\n\"; }'" || true
+  remote_wp "wp rewrite flush --allow-root" || echo "WARNING: wp rewrite flush failed or timed out" >&2
+  remote_wp "wp cache flush --allow-root" || true
+  remote_wp "wp super-cache flush --allow-root" 2>/dev/null || true
 }
 
 echo "=== Blue Starfish update ==="

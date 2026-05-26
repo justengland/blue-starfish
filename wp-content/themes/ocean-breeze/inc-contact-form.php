@@ -59,6 +59,50 @@ function ocean_breeze_contact_form_debug_enabled() {
 }
 
 /**
+ * Whether the contact form POST is an AJAX submission (expects JSON).
+ *
+ * @return bool
+ */
+function ocean_breeze_contact_form_is_ajax_request() {
+	return isset( $_POST['is_ajax'] );
+}
+
+/**
+ * Fail validation: JSON error for AJAX, HTML notice otherwise.
+ *
+ * @param string $text        User-facing message.
+ * @param string $debug_label Optional validation label when debug is on.
+ * @param array  $debug       Optional debug array (by reference).
+ * @return string HTML notice when not AJAX (unreachable for AJAX; exits).
+ */
+function ocean_breeze_contact_form_fail( $text, $debug_label = '', &$debug = null ) {
+	if ( ocean_breeze_contact_form_debug_enabled() && $debug_label && null !== $debug ) {
+		$debug['validation'] = $debug_label;
+	}
+
+	if ( ocean_breeze_contact_form_is_ajax_request() ) {
+		wp_send_json_error( $text );
+	}
+
+	return ocean_breeze_contact_form_notice( $text, 'error' );
+}
+
+/**
+ * Require a valid Cloudflare Turnstile response when keys are configured.
+ *
+ * @param string $token cf-turnstile-response value.
+ * @param array  $debug Optional. Filled with debug lines when debug mode is on.
+ * @return bool True when verification passed or Turnstile is not configured.
+ */
+function ocean_breeze_contact_form_turnstile_passed( $token, &$debug = null ) {
+	if ( ! ocean_breeze_turnstile_is_configured() ) {
+		return true;
+	}
+
+	return ocean_breeze_turnstile_verify( $token, $debug );
+}
+
+/**
  * Verify a Turnstile token with Cloudflare.
  *
  * @param string $token cf-turnstile-response value.
@@ -118,35 +162,107 @@ function ocean_breeze_turnstile_verify( $token, &$debug = null ) {
 }
 
 /**
- * Enqueue Turnstile script on pages that render the contact form.
+ * Whether the current request should load contact form assets.
+ *
+ * @return bool
  */
-function ocean_breeze_turnstile_enqueue_scripts() {
+function ocean_breeze_contact_form_should_load_assets() {
+	if ( is_page( 'contact' ) ) {
+		return true;
+	}
+
+	if ( is_singular() ) {
+		$post = get_post();
+		if ( $post && has_shortcode( $post->post_content, 'simple_contact_form' ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Register contact form script (external file avoids wpautop breaking inline JS).
+ */
+function ocean_breeze_contact_form_register_script() {
+	$path = get_template_directory() . '/assets/contact-form.js';
+	$ver  = file_exists( $path ) ? (string) filemtime( $path ) : wp_get_theme()->get( 'Version' );
+
+	wp_register_script(
+		'ocean-breeze-contact-form',
+		get_template_directory_uri() . '/assets/contact-form.js',
+		array(),
+		$ver,
+		true
+	);
+}
+add_action( 'wp_enqueue_scripts', 'ocean_breeze_contact_form_register_script', 5 );
+
+/**
+ * Enqueue contact form script + localized strings.
+ */
+function ocean_breeze_contact_form_enqueue_script() {
+	if ( ! wp_script_is( 'ocean-breeze-contact-form', 'registered' ) ) {
+		ocean_breeze_contact_form_register_script();
+	}
+
+	wp_enqueue_script( 'ocean-breeze-contact-form' );
+
+	wp_localize_script(
+		'ocean-breeze-contact-form',
+		'oceanBreezeContactForm',
+		array(
+			'sending'      => __( 'Sending...', 'ocean-breeze' ),
+			'networkError' => __( 'A network error occurred. Please try again.', 'ocean-breeze' ),
+			'homeUrl'      => home_url( '/' ),
+			'hasTurnstile' => ocean_breeze_turnstile_is_configured(),
+		)
+	);
+}
+
+/**
+ * Enqueue Cloudflare Turnstile API (once per request).
+ *
+ * @param string[] $deps Script handles Turnstile should load after.
+ */
+function ocean_breeze_enqueue_turnstile_api( $deps = array() ) {
 	if ( ! ocean_breeze_turnstile_is_configured() ) {
 		return;
 	}
 
-	$should_load = false;
-
-	if ( is_page( 'contact' ) ) {
-		$should_load = true;
-	} elseif ( is_singular() ) {
-		$post = get_post();
-		if ( $post && has_shortcode( $post->post_content, 'simple_contact_form' ) ) {
-			$should_load = true;
-		}
-	}
-
-	if ( ! $should_load ) {
-		return;
-	}
+	$deps = array_values( array_filter( (array) $deps ) );
 
 	wp_enqueue_script(
 		'cloudflare-turnstile',
 		'https://challenges.cloudflare.com/turnstile/v0/api.js',
-		array(),
+		$deps,
 		null,
 		true
 	);
+}
+
+/**
+ * Enqueue contact / availability scripts; load Turnstile API when configured.
+ */
+function ocean_breeze_turnstile_enqueue_scripts() {
+	$turnstile_deps = array();
+
+	if ( ocean_breeze_contact_form_should_load_assets() ) {
+		ocean_breeze_contact_form_enqueue_script();
+		$turnstile_deps[] = 'ocean-breeze-contact-form';
+	}
+
+	if ( function_exists( 'ocean_breeze_availability_should_load_assets' )
+		&& ocean_breeze_availability_should_load_assets() ) {
+		ocean_breeze_availability_enqueue_script();
+		$turnstile_deps[] = 'ocean-breeze-availability-calendars';
+	}
+
+	if ( empty( $turnstile_deps ) ) {
+		return;
+	}
+
+	ocean_breeze_enqueue_turnstile_api( $turnstile_deps );
 }
 add_action( 'wp_enqueue_scripts', 'ocean_breeze_turnstile_enqueue_scripts' );
 
@@ -403,6 +519,8 @@ function ocean_breeze_contact_page_url() {
  * @return string
  */
 function ocean_breeze_contact_form_shortcode() {
+	ocean_breeze_contact_form_enqueue_script();
+
 	$message = '';
 	$debug   = array();
 
@@ -424,9 +542,10 @@ function ocean_breeze_contact_form_shortcode() {
 			if ( ocean_breeze_contact_form_debug_enabled() ) {
 				$debug['nonce'] = 'invalid';
 			}
-			$message = ocean_breeze_contact_form_notice(
+			$message = ocean_breeze_contact_form_fail(
 				__( 'Security check failed. Please try again.', 'ocean-breeze' ),
-				'error'
+				'invalid nonce',
+				$debug
 			);
 		} else {
 			if ( ocean_breeze_contact_form_debug_enabled() ) {
@@ -443,31 +562,29 @@ function ocean_breeze_contact_form_shortcode() {
 				$debug['email']          = $email;
 				$debug['email_valid']    = is_email( $email ) ? 'yes' : 'no';
 				$debug['message_length'] = strlen( $content );
+				$debug['turnstile_required'] = ocean_breeze_turnstile_is_configured() ? 'yes' : 'no';
 			}
 
 			if ( empty( $name ) || empty( $email ) || empty( $content ) ) {
-				if ( ocean_breeze_contact_form_debug_enabled() ) {
-					$debug['validation'] = 'missing required fields';
-				}
-				$message = ocean_breeze_contact_form_notice(
+				$message = ocean_breeze_contact_form_fail(
 					__( 'Please fill out all fields.', 'ocean-breeze' ),
-					'error'
+					'missing required fields',
+					$debug
 				);
 			} elseif ( ! is_email( $email ) ) {
-				if ( ocean_breeze_contact_form_debug_enabled() ) {
-					$debug['validation'] = 'invalid email';
-				}
-				$message = ocean_breeze_contact_form_notice(
+				$message = ocean_breeze_contact_form_fail(
 					__( 'Please enter a valid email address.', 'ocean-breeze' ),
-					'error'
+					'invalid email',
+					$debug
 				);
-			} elseif ( ! ocean_breeze_turnstile_verify( $turnstile_response, $debug ) ) {
-				if ( ocean_breeze_contact_form_debug_enabled() ) {
-					$debug['validation'] = 'turnstile failed';
-				}
-				$message = ocean_breeze_contact_form_notice(
-					__( 'Bot protection check failed. Please try again.', 'ocean-breeze' ),
-					'error'
+			} elseif ( ! ocean_breeze_contact_form_turnstile_passed( $turnstile_response, $debug ) ) {
+				$fail_text = ocean_breeze_turnstile_is_configured() && '' === $turnstile_response
+					? __( 'Please complete the security check before sending.', 'ocean-breeze' )
+					: __( 'Bot protection check failed. Please try again.', 'ocean-breeze' );
+				$message   = ocean_breeze_contact_form_fail(
+					$fail_text,
+					'turnstile failed',
+					$debug
 				);
 			} else {
 				if ( ocean_breeze_contact_form_debug_enabled() ) {
@@ -542,7 +659,7 @@ function ocean_breeze_contact_form_shortcode() {
 
 	ob_start();
 	?>
-	<div class="ocean-breeze-contact-form wp-block-group">
+	<div class="ocean-breeze-contact-form wp-block-group<?php echo ocean_breeze_turnstile_is_configured() ? ' has-turnstile' : ''; ?>">
 		<?php
 		if ( $message ) {
 			echo wp_kses_post( $message );
@@ -582,120 +699,34 @@ function ocean_breeze_contact_form_shortcode() {
 				<textarea name="ob_message" id="ob_message" rows="5" required></textarea>
 			</p>
 
-			<?php if ( ocean_breeze_turnstile_is_configured() ) : ?>
-				<div class="ocean-breeze-contact-form__field ocean-breeze-contact-form__turnstile">
-					<div class="cf-turnstile" data-sitekey="<?php echo esc_attr( TURNSTILE_SITE_KEY ); ?>"></div>
-				</div>
-			<?php endif; ?>
-
 			<div id="contact-form-error" class="ocean-breeze-contact-form__notice ocean-breeze-contact-form__notice--error" style="display:none;" aria-live="polite"></div>
 
-			<p class="ocean-breeze-contact-form__actions">
-				<button type="submit" name="ob_contact_submit" class="wp-block-button__link wp-element-button">
-					<?php esc_html_e( 'Send message', 'ocean-breeze' ); ?>
-				</button>
-			</p>
+			<div class="wp-block-buttons ocean-breeze-contact-form__actions">
+				<div class="wp-block-button">
+					<button
+						type="submit"
+						name="ob_contact_submit"
+						class="wp-block-button__link wp-element-button ocean-breeze-contact-form__submit"
+						<?php echo ocean_breeze_turnstile_is_configured() ? ' disabled aria-disabled="true"' : ''; ?>
+					>
+						<?php esc_html_e( 'Send Message', 'ocean-breeze' ); ?>
+					</button>
+				</div>
+			</div>
+
+			<?php if ( ocean_breeze_turnstile_is_configured() ) : ?>
+				<div class="ocean-breeze-contact-form__turnstile">
+					<div
+						class="cf-turnstile"
+						data-sitekey="<?php echo esc_attr( TURNSTILE_SITE_KEY ); ?>"
+						data-callback="oceanBreezeTurnstileSuccess"
+						data-expired-callback="oceanBreezeTurnstileExpired"
+						data-error-callback="oceanBreezeTurnstileError"
+					></div>
+				</div>
+			<?php endif; ?>
 		</form>
 	</div>
-	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-			var form = document.getElementById('contact-form');
-			if (!form) return;
-			
-			form.addEventListener('submit', function(e) {
-				e.preventDefault();
-				
-				var submitButton = form.querySelector('button[type="submit"]');
-				var errorDiv = document.getElementById('contact-form-error');
-				var originalText = submitButton.textContent;
-				
-				submitButton.disabled = true;
-				submitButton.textContent = '<?php esc_attr_e( 'Sending...', 'ocean-breeze' ); ?>';
-				errorDiv.style.display = 'none';
-				
-				var formData = new FormData(form);
-				// Make sure we pass the submit name that the backend checks for
-				formData.append('ob_contact_submit', '1');
-				
-				fetch(form.action, {
-					method: 'POST',
-					body: formData,
-					headers: {
-						'X-Requested-With': 'XMLHttpRequest'
-					}
-				})
-				.then(function(response) {
-					return response.json();
-				})
-				.then(function(data) {
-					submitButton.disabled = false;
-					submitButton.textContent = originalText;
-					
-					if (data.success) {
-						var modal = document.getElementById('contact-success-modal');
-						var messageEl = document.getElementById('contact-success-message');
-						
-						if (modal && messageEl) {
-							messageEl.textContent = data.data;
-							modal.showModal();
-							
-							var closeBtn = modal.querySelector('.ocean-breeze-contact-modal__close');
-							if (closeBtn) {
-								closeBtn.addEventListener('click', function() {
-									modal.close();
-									window.location.href = '<?php echo esc_url( home_url( '/' ) ); ?>';
-								});
-							}
-							
-							// Close if clicked outside
-							modal.addEventListener('click', function(e) {
-								var dialogDimensions = modal.getBoundingClientRect()
-								if (
-									e.clientX < dialogDimensions.left ||
-									e.clientX > dialogDimensions.right ||
-									e.clientY < dialogDimensions.top ||
-									e.clientY > dialogDimensions.bottom
-								) {
-									modal.close();
-									window.location.href = '<?php echo esc_url( home_url( '/' ) ); ?>';
-								}
-							});
-						} else {
-							// Fallback if modal not supported or missing
-							alert(data.data);
-							window.location.href = '<?php echo esc_url( home_url( '/' ) ); ?>';
-						}
-					} else {
-						if (errorDiv) {
-							errorDiv.innerHTML = '<p>' + (data.data || 'Error submitting form.') + '</p>';
-							errorDiv.style.display = 'block';
-						} else {
-							alert(data.data || 'Error submitting form.');
-						}
-						
-						// Reset turnstile if exists
-						if (typeof turnstile !== 'undefined') {
-							turnstile.reset();
-						}
-					}
-				})
-				.catch(function(error) {
-					submitButton.disabled = false;
-					submitButton.textContent = originalText;
-					if (errorDiv) {
-						errorDiv.innerHTML = '<p><?php esc_attr_e( 'A network error occurred. Please try again.', 'ocean-breeze' ); ?></p>';
-						errorDiv.style.display = 'block';
-					} else {
-						alert('<?php esc_attr_e( 'A network error occurred. Please try again.', 'ocean-breeze' ); ?>');
-					}
-					
-					if (typeof turnstile !== 'undefined') {
-						turnstile.reset();
-					}
-				});
-			});
-		});
-	</script>
 	<?php
 	return (string) ob_get_clean();
 }

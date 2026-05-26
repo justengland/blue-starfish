@@ -5,8 +5,10 @@
 VERIFY_URL="${VERIFY_URL:-https://www.bluestarfishguesthouse.com/}"
 VERIFY_GREP="${VERIFY_GREP:-Blue Starfish Guest}"
 VERIFY_CONTACT_URL="${VERIFY_CONTACT_URL:-https://www.bluestarfishguesthouse.com/contact/}"
+VERIFY_AVAILABILITY_URL="${VERIFY_AVAILABILITY_URL:-https://www.bluestarfishguesthouse.com/availability/guest-house-a/}"
 VERIFY_CONTACT_FORM_REL="${VERIFY_CONTACT_FORM_REL:-wp-content/themes/ocean-breeze/inc-contact-form.php}"
 VERIFY_CONTACT_FORM_GREP="${VERIFY_CONTACT_FORM_GREP:-from_name.*Blue Starfish}"
+REMOTE_CMD_TIMEOUT="${REMOTE_CMD_TIMEOUT:-45s}"
 
 verify_homepage() {
   echo "=== Verify homepage ${VERIFY_URL} ==="
@@ -30,7 +32,11 @@ verify_homepage() {
 verify_contact_form_remote() {
   echo "=== Verify contact form on ${REMOTE_HOST} ==="
   local remote_file="${REMOTE_DIR}/${VERIFY_CONTACT_FORM_REL}"
-  if ssh "${REMOTE_HOST}" "grep -qE $(printf '%q' "${VERIFY_CONTACT_FORM_GREP}") $(printf '%q' "${remote_file}")"; then
+  if timeout "${REMOTE_CMD_TIMEOUT}" ssh \
+    -o BatchMode=yes \
+    -o ServerAliveInterval=10 \
+    -o ServerAliveCountMax=3 \
+    "${REMOTE_HOST}" "grep -qE $(printf '%q' "${VERIFY_CONTACT_FORM_GREP}") $(printf '%q' "${remote_file}")"; then
     echo "OK: ${VERIFY_CONTACT_FORM_REL} contains autoreply from_name (Blue Starfish)"
   else
     echo "ERROR: ${VERIFY_CONTACT_FORM_REL} missing expected from_name on server" >&2
@@ -57,10 +63,35 @@ verify_contact_page() {
   fi
 }
 
+verify_availability_page() {
+  echo "=== Verify availability page ${VERIFY_AVAILABILITY_URL} ==="
+  local tmp
+  tmp="$(mktemp)"
+  if ! curl -sL --max-time 30 "${VERIFY_AVAILABILITY_URL}" -o "${tmp}"; then
+    rm -f "${tmp}"
+    echo "ERROR: could not fetch ${VERIFY_AVAILABILITY_URL}" >&2
+    return 1
+  fi
+  if grep -qF 'There has been a critical error on this website' "${tmp}"; then
+    rm -f "${tmp}"
+    echo "ERROR: availability page rendered a WordPress critical error" >&2
+    return 1
+  fi
+  if grep -qF 'ocean-breeze-availability' "${tmp}"; then
+    rm -f "${tmp}"
+    echo "OK: availability page renders the calendar container"
+  else
+    rm -f "${tmp}"
+    echo "ERROR: availability page missing calendar container" >&2
+    return 1
+  fi
+}
+
 verify_deploy() {
   local failed=0
   verify_homepage || failed=1
   verify_contact_form_remote || failed=1
   verify_contact_page || failed=1
+  verify_availability_page || failed=1
   return "${failed}"
 }

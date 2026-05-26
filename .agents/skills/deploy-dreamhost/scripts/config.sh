@@ -11,6 +11,7 @@ RSYNC_EXCLUDES=(
   --exclude '.agents/'
   --exclude '.cursor/'
   --exclude '.git/'
+  --exclude '.worktrees/'
   --exclude 'scrape/'
   --exclude 'AGENTS.md'
   --exclude 'ocean-breeze.zip'
