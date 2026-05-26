@@ -1,0 +1,30 @@
+<?php
+/**
+ * DreamHost SMTP for WordPress (local dev or paste into wp-config.php on production).
+ *
+ * Copy to local-smtp.php (gitignored) OR add these defines to wp-config.php above
+ * "That's all, stop editing".
+ *
+ * Use a FULL DreamHost mailbox on your domain. rentals@ works once it is a
+ * full mailbox (not forward-only). Create one in DreamHost panel → Mail.
+ *
+ * On production, prefer wp-config.php + .smtp-credentials (see below).
+ */
+
+define( 'WPMS_ON', true );
+define( 'WPMS_MAILER', 'smtp' );
+define( 'WPMS_MAIL_FROM', 'notification@bluestarfishguesthouse.com' );
+define( 'WPMS_MAIL_FROM_FORCE', true );
+define( 'WPMS_MAIL_FROM_NAME', 'Blue Starfish Guesthouse' );
+define( 'WPMS_MAIL_FROM_NAME_FORCE', true );
+define( 'WPMS_SET_RETURN_PATH', true );
+define( 'WPMS_SMTP_HOST', 'smtp.dreamhost.com' );
+define( 'WPMS_SMTP_PORT', 587 );
+define( 'WPMS_SSL', 'tls' );
+define( 'WPMS_SMTP_AUTH', true );
+define( 'WPMS_SMTP_USER', 'notification@bluestarfishguesthouse.com' );
+define( 'WPMS_SMTP_PASS', 'your_mailbox_password_here' );
+define( 'WPMS_SMTP_AUTOTLS', true );
+
+// Optional: also BCC contact form mail to these addresses (comma-separated).
+// define( 'OB_CONTACT_FORM_BCC', 'justengland@gmail.com' );

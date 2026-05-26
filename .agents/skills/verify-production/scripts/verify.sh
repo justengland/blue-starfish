@@ -10,11 +10,18 @@ VERIFY_CONTACT_FORM_GREP="${VERIFY_CONTACT_FORM_GREP:-from_name.*Blue Starfish}"
 
 verify_homepage() {
   echo "=== Verify homepage ${VERIFY_URL} ==="
-  local html
-  html=$(curl -sL --max-time 30 "${VERIFY_URL}" || true)
-  if echo "${html}" | grep -q "${VERIFY_GREP}"; then
+  local tmp
+  tmp="$(mktemp)"
+  if ! curl -sL --max-time 30 "${VERIFY_URL}" -o "${tmp}"; then
+    rm -f "${tmp}"
+    echo "ERROR: could not fetch ${VERIFY_URL}" >&2
+    return 1
+  fi
+  if grep -qF -- "${VERIFY_GREP}" "${tmp}"; then
+    rm -f "${tmp}"
     echo "OK: homepage contains \"${VERIFY_GREP}\""
   else
+    rm -f "${tmp}"
     echo "ERROR: homepage did not match \"${VERIFY_GREP}\" — hard-refresh or check Reading settings" >&2
     return 1
   fi
@@ -33,11 +40,18 @@ verify_contact_form_remote() {
 
 verify_contact_page() {
   echo "=== Verify contact page ${VERIFY_CONTACT_URL} ==="
-  local html
-  html=$(curl -sL --max-time 30 "${VERIFY_CONTACT_URL}" || true)
-  if echo "${html}" | grep -q 'id="contact-form"'; then
+  local tmp
+  tmp="$(mktemp)"
+  if ! curl -sL --max-time 30 "${VERIFY_CONTACT_URL}" -o "${tmp}"; then
+    rm -f "${tmp}"
+    echo "ERROR: could not fetch ${VERIFY_CONTACT_URL}" >&2
+    return 1
+  fi
+  if grep -qF 'id="contact-form"' "${tmp}"; then
+    rm -f "${tmp}"
     echo "OK: contact page renders the contact form"
   else
+    rm -f "${tmp}"
     echo "ERROR: contact page missing #contact-form" >&2
     return 1
   fi

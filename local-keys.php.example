@@ -1,0 +1,15 @@
+<?php
+/**
+ * Cloudflare Turnstile keys (local development).
+ *
+ * Copy to local-keys.php and paste your keys from the Cloudflare dashboard.
+ * local-keys.php is gitignored.
+ *
+ * On production (DreamHost), add the same defines to wp-config.php instead:
+ *
+ * define( 'TURNSTILE_SITE_KEY', '...' );
+ * define( 'TURNSTILE_SECRET_KEY', '...' );
+ */
+
+define( 'TURNSTILE_SITE_KEY', 'your_site_key_here' );
+define( 'TURNSTILE_SECRET_KEY', 'your_secret_key_here' );

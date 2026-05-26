@@ -2,11 +2,11 @@
 # Run all production smoke tests (homepage, contact form file on server, contact page).
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERIFY_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../deploy-dreamhost/scripts/config.sh
-source "${SCRIPT_DIR}/../../deploy-dreamhost/scripts/config.sh"
+source "${VERIFY_SCRIPT_DIR}/../../deploy-dreamhost/scripts/config.sh"
 # shellcheck source=verify.sh
-source "${SCRIPT_DIR}/verify.sh"
+source "${VERIFY_SCRIPT_DIR}/verify.sh"
 
 usage() {
   cat <<EOF

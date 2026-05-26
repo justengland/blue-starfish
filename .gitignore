@@ -5,3 +5,5 @@ ocean-breeze.zip
 .cursor/
 .DS_Store
 local-keys.php
+local-smtp.php
+.smtp-credentials
